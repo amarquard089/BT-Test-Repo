@@ -1,0 +1,22 @@
+minimum_cumulusci_version: '3.18.0'
+project:
+    name: BT-Test-Repo
+    package:
+        name: BT-Test-Repo
+        api_version: '49.0'
+    git:
+        default_branch: 'main'
+    source_format: sfdx
+
+tasks:
+    robot:
+        options:
+            suites: robot/BT-Test-Repo/tests
+            options:
+                outputdir: robot/BT-Test-Repo/results
+
+    robot_testdoc:
+        options:
+            path: robot/BT-Test-Repo/tests
+            output: robot/BT-Test-Repo/doc/BT-Test-Repo_tests.html
+
