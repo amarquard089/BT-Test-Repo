@@ -106,4 +106,4 @@ workflows:
                       - create-dx-key
             - RunBrowserTests:
                   requires:
-                      - install-and-check-dx-connection
+                      - prepare-org
