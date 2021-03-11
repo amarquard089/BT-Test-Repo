@@ -5,16 +5,16 @@ jobs:
       steps:
         - checkout
         - run:
-          name: Download DX and install
-          command: |
-            mkdir ~/tools
-            wget -q0- https://developer.salesforce.com/media/salesforce-cli/manifest.json > ~/tools/manifest.json
-            DXURL=$(cat ~/tools/manifest.json | jq -r '.downloads."linux-x64".url')
-            DXFOLDER=$(cat ~/tools/manifest.json | jq -r '.installers."linux-x64".url | match ("[^/]+$"; "g") .string | match (".+[^\\.tar.\\.xz]") .string')
-            DXFOLDEROVERRIDE='sfdx-cli-v7.82.0-3d0c527ac6-linux-x64'
-            wget -qO- $DXURL | tar xJf - --directory ~/tools/
-            sudo mv ~/tools/$DXFOLDEROVERRIDE ~/tools/sfdx
-            ~/tools/sfdx/install
+            name: Download DX and install
+            command: |
+                mkdir ~/tools
+                wget -q0- https://developer.salesforce.com/media/salesforce-cli/manifest.json > ~/tools/manifest.json
+                DXURL=$(cat ~/tools/manifest.json | jq -r '.downloads."linux-x64".url')
+                DXFOLDER=$(cat ~/tools/manifest.json | jq -r '.installers."linux-x64".url | match ("[^/]+$"; "g") .string | match (".+[^\\.tar.\\.xz]") .string')
+                DXFOLDEROVERRIDE='sfdx-cli-v7.82.0-3d0c527ac6-linux-x64'
+                wget -qO- $DXURL | tar xJf - --directory ~/tools/
+                sudo mv ~/tools/$DXFOLDEROVERRIDE ~/tools/sfdx
+                ~/tools/sfdx/install
         - persist_to_workspace:
             root: ~/
             paths:
