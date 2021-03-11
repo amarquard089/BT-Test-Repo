@@ -50,6 +50,7 @@ jobs:
           - run:
                name: Create Scratch Org
                command: |
+                sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
                 sfdx force:org:create -f browsertest-init/config/project-scratch-def.json -a test -d 1 -n
                 authInfo=$(sfdx force:org:display -u $orgname --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
@@ -58,6 +59,9 @@ jobs:
                 root: ~/
                 paths:
                     - tools/browserTestOrgs/*
+          - store_artifacts:
+                path: ~/.sfdx/sfdx.log
+                destination: sfdx-logs
 
     RunBrowserTests:
         docker:
@@ -70,9 +74,9 @@ jobs:
                   name: DX Install
                   command: ~/tools/sfdx/install
             - run:
-                  name: Push Data to Testorg
+                  name: Install cci
                   command: |
-                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/browsertest-PropertiesAndCalculation.auth --setalias test
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
                       sudo pip install --upgrade pip 
                       sudo pip install cumulusci
                       cci org import test test
