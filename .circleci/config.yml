@@ -35,28 +35,6 @@ jobs:
             paths:
                 - tools/devhub-org/devHub.auth
 
-    install-and-check-dx-connection:
-      machine: true
-      steps:
-          - attach_workspace:
-                at: ~/
-          - run:
-              name: Install SFDX
-              command: ~/tools/sfdx/install
-          - run:
-                name: authenticate dx against devhub
-                command: |
-                    sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
-                                                --setalias devHub \
-                                                --setdefaultdevhubusername
-          - persist_to_workspace:
-                root: ~/
-                paths:
-                    - .sfdx/*
-          - store_artifacts:
-                path: ~/.sfdx/sfdx.log
-                destination: sfdx-logs
-
     prepare-org:
       machine: true
       steps: 
@@ -72,7 +50,6 @@ jobs:
           - run:
                name: Create Scratch Org
                command: |
-                sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
                 sfdx force:org:create -f browsertest-init/config/project-scratch-def.json -a test -d 1 -n
                 authInfo=$(sfdx force:org:display -u $orgname --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
@@ -123,13 +100,10 @@ workflows:
         jobs:
             - dx-download
             - create-dx-key
-            - install-and-check-dx-connection:
+            - prepare-org:
                   requires:
                       - dx-download
                       - create-dx-key
-            - prepare-org:
-                  requires:
-                      - install-and-check-dx-connection
             - RunBrowserTests:
                   requires:
                       - install-and-check-dx-connection
