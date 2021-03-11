@@ -1,13 +1,129 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
-# Use a package of configuration called an orb.
-orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.4.1
-# Orchestrate or schedule a set of jobs
+jobs:
+    dx-download:
+      machine: true
+      steps:
+        - checkout
+        - run:
+          name: Download DX and install
+          command: |
+            mkdir ~/tools
+            wget -q0- https://developer.salesforce.com/media/salesforce-cli/manifest.json > ~/tools/manifest.json
+            DXURL=$(cat ~/tools/manifest.json | jq -r '.downloads."linux-x64".url')
+            DXFOLDER=$(cat ~/tools/manifest.json | jq -r '.installers."linux-x64".url | match ("[^/]+$"; "g") .string | match (".+[^\\.tar.\\.xz]") .string')
+            DXFOLDEROVERRIDE='sfdx-cli-v7.82.0-3d0c527ac6-linux-x64'
+            wget -qO- $DXURL | tar xJf - --directory ~/tools/
+            sudo mv ~/tools/$DXFOLDEROVERRIDE ~/tools/sfdx
+            ~/tools/sfdx/install
+        - persist_to_workspace:
+            root: ~/
+            paths:
+              - tools/*
+
+    create-dx-key:
+      machine: true
+      steps:
+        - attach_workspace:
+            at: ~/
+        - run:
+            name: prepare dev hub auth file
+            command: |
+              mkdir -p ~/tools/devhub-org
+              echo $SFDX_AUTH_DEVHUB > ~/tools/devhub-org/devHub.auth
+        - persist_to_workspace:
+            root: ~/
+            paths:
+                - tools/devhub-org/devHub.auth
+
+    install-and-check-dx-connection:
+      machine: true
+      steps:
+          - attach_workspace:
+                at: ~/
+          - run:
+                name: authenticate dx against devhub
+                command: |
+                    sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
+                                                --setalias devHub \
+                                                --setdefaultdevhubusername
+          - persist_to_workspace:
+                root: ~/
+                paths:
+                    - .sfdx/*
+          - store_artifacts:
+                path: ~/.sfdx/sfdx.log
+                destination: sfdx-logs
+
+    prepare-org:
+      machine: true
+      steps: 
+          - attach_workspace:
+                at: ~/
+          - run:
+                name: update dx
+                command: |
+                    sfdx update
+          - run:
+               name: Create Scratch Org
+               command: |
+                sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
+                sfdx force:org:create -f browsertest-init/config/project-scratch-def.json -a test -d 1 -n
+                authInfo=$(sfdx force:org:display -u $orgname --verbose --json | jq -j .result.sfdxAuthUrl)
+                mkdir -p ~/tools/browserTestOrgs
+                echo $authInfo > ~/tools/browserTestOrgs/test.auth
+          - persist_to_workspace:
+                root: ~/
+                paths:
+                    - tools/browserTestOrgs/*
+
+    RunBrowserTests:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                  name: DX Install
+                  command: ~/tools/sfdx/install
+            - run:
+                  name: Push Data to Testorg
+                  command: |
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/browsertest-PropertiesAndCalculation.auth --setalias test
+                      sudo pip install --upgrade pip 
+                      sudo pip install cumulusci
+                      cci org import test test
+            - run:
+                  name: Run Test
+                  command: |
+                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/create_contact.robot --org test  -o vars BROWSER:headlessfirefox
+            - run:
+                  name: Delete Scratch Org
+                  command: |
+                      sfdx force:org:delete -u browsertest-PropertiesAndCalculation --noprompt
+                  when: always
+            - store_test_results:
+                  path: ./robot/BT-Test-Repo/results
+            - store_artifacts:
+                  path: ./robot/BT-Test-Repo/results
+                  destination: browsertest-results
+            - store_artifacts:
+                  path: ~/.sfdx/sfdx.log
+                  destination: sfdx-logs
+
 workflows:
-  # Name the workflow "welcome"
-  welcome:
-    # Run the welcome/run job in its own container
-    jobs:
-      - welcome/run
+    version: 2.1
+    deploy-and-test:
+        jobs:
+            - dx-download
+            - create-dx-key
+            - install-and-check-dx-connection:
+                  requires:
+                      - dx-download
+                      - create-dx-key
+            - prepare-org:
+                  requires:
+                      - install-and-check-dx-connection
+            - RunBrowserTests:
+                  requires:
+                      - install-and-check-dx-connection
