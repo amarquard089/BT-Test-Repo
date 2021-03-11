@@ -41,6 +41,9 @@ jobs:
           - attach_workspace:
                 at: ~/
           - run:
+              name: Install SFDX
+              command: ~/tools/sfdx/install
+          - run:
                 name: authenticate dx against devhub
                 command: |
                     sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
@@ -59,6 +62,9 @@ jobs:
       steps: 
           - attach_workspace:
                 at: ~/
+          - run:
+              name: Install SFDX
+              command: ~/tools/sfdx/install
           - run:
                 name: update dx
                 command: |
