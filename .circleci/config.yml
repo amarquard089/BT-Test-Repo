@@ -65,8 +65,8 @@ jobs:
                name: Create Scratch Org
                command: |
                 sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
-                sfdx force:org:create -f browsertest-init/config/project-scratch-def.json -a test -d 1 -n
-                authInfo=$(sfdx force:org:display -u $orgname --verbose --json | jq -j .result.sfdxAuthUrl)
+                sfdx force:org:create -f browsertest-init/config/project-scratch-def.json -a test -d 1
+                authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test.auth
           - persist_to_workspace:
@@ -130,7 +130,7 @@ workflows:
             - dx-download
             - install-and-check-dx-connection:
                 context: 
-                    - BT-Sample
+                      - BT-Sample
                 requires:
                       - dx-download
             - prepare-org:
