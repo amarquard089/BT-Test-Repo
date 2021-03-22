@@ -101,7 +101,7 @@ jobs:
             - run:
                   name: Delete Scratch Org
                   command: |
-                      sfdx force:org:delete -u browsertest-PropertiesAndCalculation --noprompt
+                      sfdx force:org:delete -u test --noprompt
                   when: always
             - store_test_results:
                   path: ./robot/BT-Test-Repo/results
