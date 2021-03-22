@@ -45,7 +45,7 @@ jobs:
                     root: ~/
                     paths:
                         - .sfdx/*
-                        - ~/tools/devhub-org
+                        - tools/devhub-org/*
             - store_artifacts:
                     path: ~/.sfdx/sfdx.log
                     destination: sfdx-logs
