@@ -53,6 +53,7 @@ jobs:
     prepare-org:
       machine: true
       steps: 
+          - checkout
           - attach_workspace:
                 at: ~/
           - run:
