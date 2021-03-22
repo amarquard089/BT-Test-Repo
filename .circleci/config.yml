@@ -126,7 +126,7 @@ workflows:
         jobs:
             - dx-download
             - create-dx-key
-            - install-and-check-dx-connection
+            - install-and-check-dx-connection:
                 requires:
                       - dx-download
                       - create-dx-key
