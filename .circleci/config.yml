@@ -20,21 +20,6 @@ jobs:
             paths:
               - tools/*
 
-    create-dx-key:
-      machine: true
-      steps:
-        - attach_workspace:
-            at: ~/
-        - run:
-            name: prepare dev hub auth file
-            command: |
-              mkdir -p ~/tools/devhub-org
-              echo $SFDX_AUTH_DEVHUB > ~/tools/devhub-org/devHub.auth
-        - persist_to_workspace:
-            root: ~/
-            paths:
-                - tools/devhub-org/devHub.auth
-
     install-and-check-dx-connection:
         machine: true
         steps:
@@ -46,7 +31,8 @@ jobs:
             - run:
                     name: authenticate dx against devhub
                     command: |
-                        sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
+                        echo $SFDX_AUTH_DEVHUB > ~/tools/devHub.auth
+                        sfdx auth:sfdxurl:store -f ~/tools/devHub.auth \
                                                     --setalias devHub \
                                                     --setdefaultdevhubusername
             - persist_to_workspace:
@@ -136,11 +122,9 @@ workflows:
     deploy-and-test:
         jobs:
             - dx-download
-            - create-dx-key
             - install-and-check-dx-connection:
                 requires:
                       - dx-download
-                      - create-dx-key
             - prepare-org:
                 requires:
                       - install-and-check-dx-connection
