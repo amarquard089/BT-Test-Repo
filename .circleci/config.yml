@@ -29,10 +29,16 @@ jobs:
                 name: Install SFDX
                 command: ~/tools/sfdx/install
             - run:
+                name: create and store dx key
+                command: |
+                    mkdir ~/tools/devhub-org
+                    echo $SFDX_AUTH_DEVHUB > ~/tools/devhub-org/devHub.auth
+                    echo $SFDX_AUTH_DEVHUB
+
+            - run:
                     name: authenticate dx against devhub
                     command: |
-                        echo $SFDX_AUTH_DEVHUB > ~/tools/devHub.auth
-                        sfdx auth:sfdxurl:store -f ~/tools/devHub.auth \
+                        sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
                                                     --setalias devHub \
                                                     --setdefaultdevhubusername
             - persist_to_workspace:
