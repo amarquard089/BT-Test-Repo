@@ -11,7 +11,8 @@ project:
 tasks:
     robot:
         options:
-            suites: robot/BT-Test-Repo/tests
+            xunit: test-result-junit.xml
+            processes: 2
             options:
                 outputdir: robot/BT-Test-Repo/results
 

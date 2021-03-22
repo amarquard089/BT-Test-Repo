@@ -1,13 +1,157 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
-# Use a package of configuration called an orb.
-orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.4.1
-# Orchestrate or schedule a set of jobs
+jobs:
+    dx-download:
+      machine: true
+      steps:
+        - checkout
+        - run:
+            name: Download DX and install
+            command: |
+                mkdir ~/tools
+                wget -qO- https://developer.salesforce.com/media/salesforce-cli/manifest.json > ~/tools/manifest.json
+                DXURL=$(cat ~/tools/manifest.json | jq -r '.downloads."linux-x64".url')
+                DXFOLDER=$(cat ~/tools/manifest.json | jq -r '.installers."linux-x64".url | match ("[^/]+$"; "g") .string | match (".+[^\\.tar.\\.xz]") .string')
+                DXFOLDEROVERRIDE='sfdx-cli-v7.82.0-3d0c527ac6-linux-x64'
+                wget -qO- $DXURL | tar xJf - --directory ~/tools/
+                sudo mv ~/tools/$DXFOLDEROVERRIDE ~/tools/sfdx
+                ~/tools/sfdx/install
+        - persist_to_workspace:
+            root: ~/
+            paths:
+              - tools/*
+
+    install-and-check-dx-connection:
+        machine: true
+        steps:
+            - attach_workspace:
+                    at: ~/
+            - run:
+                name: Install SFDX
+                command: ~/tools/sfdx/install
+            - run:
+                name: create and store dx key
+                command: |
+                    mkdir ~/tools/devhub-org
+                    echo $SFDX_AUTH_DEVHUB > ~/tools/devhub-org/devHub.auth
+                    echo $SFDX_AUTH_DEVHUB
+
+            - run:
+                    name: authenticate dx against devhub
+                    command: |
+                        sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
+                                                    --setalias devHub \
+                                                    --setdefaultdevhubusername
+            - persist_to_workspace:
+                    root: ~/
+                    paths:
+                        - .sfdx/*
+                        - tools/devhub-org/*
+            - store_artifacts:
+                    path: ~/.sfdx/sfdx.log
+                    destination: sfdx-logs
+
+    prepare-org:
+      machine: true
+      steps: 
+          - checkout
+          - attach_workspace:
+                at: ~/
+          - run:
+              name: Install SFDX
+              command: ~/tools/sfdx/install
+          - run:
+                name: update dx
+                command: |
+                    sfdx update
+          - run:
+               name: Create Scratch Org
+               command: |
+                sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
+                cd ~/project
+                sfdx force:org:create -f ./browsertest-init/config/project-scratch-def.json -a test -d 1
+                authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
+                mkdir -p ~/tools/browserTestOrgs
+                echo $authInfo > ~/tools/browserTestOrgs/test.auth
+          - persist_to_workspace:
+                root: ~/
+                paths:
+                    - tools/browserTestOrgs/*
+          - store_artifacts:
+                path: ~/.sfdx/sfdx.log
+                destination: sfdx-logs
+
+    RunBrowserTests:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                  name: DX Install
+                  command: ~/tools/sfdx/install
+            - run:
+                  name: Install cci
+                  command: |
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
+                      sudo pip install --upgrade pip 
+                      sudo pip install cumulusci
+                      cci version
+                      cci org import test test
+            - run:
+                  name: Run Test
+                  command: |
+                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/ --org test -o vars BROWSER:headlessfirefox
+            - run:
+                  name: Delete Scratch Org
+                  command: |
+                      sfdx force:org:delete -u test --noprompt
+                  when: always
+            - store_test_results:
+                  path: ./robot/BT-Test-Repo/results
+            - store_artifacts:
+                  path: ./robot/BT-Test-Repo/results
+                  destination: browsertest-results
+            - store_artifacts:
+                  path: ~/.sfdx/sfdx.log
+                  destination: sfdx-logs
+    
+    echoing:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                  name: echo
+                  command: echo "Hello"
+
 workflows:
-  # Name the workflow "welcome"
-  welcome:
-    # Run the welcome/run job in its own container
-    jobs:
-      - welcome/run
+    version: 2.1
+    deploy-and-test:
+        jobs:
+            - dx-download
+            - install-and-check-dx-connection:
+                context: 
+                      - BT-Sample
+                requires:
+                      - dx-download
+            - prepare-org:
+                requires:
+                      - install-and-check-dx-connection
+            - RunBrowserTests:
+                  context:
+                      - BT-Sample
+                  requires:
+                      - prepare-org
+    nightly:
+        triggers:
+            - schedule:
+                cron: "20 * * * *"
+                filters:
+                    branches:
+                        only:
+                            - master
+        jobs:
+            - echoing
