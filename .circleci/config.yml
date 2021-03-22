@@ -35,27 +35,27 @@ jobs:
             paths:
                 - tools/devhub-org/devHub.auth
 
-install-and-check-dx-connection:
-      machine: true
-      steps:
-          - attach_workspace:
-                at: ~/
-          - run:
-              name: Install SFDX
-              command: ~/tools/sfdx/install
-          - run:
-                name: authenticate dx against devhub
-                command: |
-                    sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
-                                                --setalias devHub \
-                                                --setdefaultdevhubusername
-          - persist_to_workspace:
-                root: ~/
-                paths:
-                    - .sfdx/*
-          - store_artifacts:
-                path: ~/.sfdx/sfdx.log
-                destination: sfdx-logs
+    install-and-check-dx-connection:
+        machine: true
+        steps:
+            - attach_workspace:
+                    at: ~/
+            - run:
+                name: Install SFDX
+                command: ~/tools/sfdx/install
+            - run:
+                    name: authenticate dx against devhub
+                    command: |
+                        sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
+                                                    --setalias devHub \
+                                                    --setdefaultdevhubusername
+            - persist_to_workspace:
+                    root: ~/
+                    paths:
+                        - .sfdx/*
+            - store_artifacts:
+                    path: ~/.sfdx/sfdx.log
+                    destination: sfdx-logs
 
     prepare-org:
       machine: true
