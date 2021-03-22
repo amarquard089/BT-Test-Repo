@@ -152,7 +152,7 @@ workflows:
                 filters:
                     branches:
                         only:
-                          - master
+                          - main
         jobs:
             - echoing
     hourly:
@@ -162,7 +162,7 @@ workflows:
                 filters:
                     branches:
                         only:
-                          - master
+                          - main
         jobs:
             - dx-download
             - install-and-check-dx-connection:
