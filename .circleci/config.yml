@@ -141,7 +141,7 @@ workflows:
                 requires:
                       - install-and-check-dx-connection
             - RunBrowserTests:
-                context:
+                  context:
                       - BT-Sample
                   requires:
                       - prepare-org
