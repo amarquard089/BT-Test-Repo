@@ -126,10 +126,13 @@ workflows:
         jobs:
             - dx-download
             - create-dx-key
-            - prepare-org:
-                  requires:
+            - install-and-check-dx-connection
+                requires:
                       - dx-download
                       - create-dx-key
+            - prepare-org:
+                requires:
+                      - install-and-check-dx-connection
             - RunBrowserTests:
                   requires:
                       - prepare-org

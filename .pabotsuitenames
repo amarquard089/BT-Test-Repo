@@ -1,0 +1,6 @@
+datasources:613485fd73944b727f1b0fd41df3da659572a436
+commandlineoptions:1a1a3556285943559b79df133b23194631588f0c
+suitesfrom:no-suites-from-option
+file:86e16728631d20318f7c40dd1647f2657d26ab29
+--suite Tests.Create Contact
+--suite Tests.Create Contact Copy
