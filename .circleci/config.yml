@@ -69,7 +69,9 @@ jobs:
                 cd /home/circleci/project
                 ls
                 pwd
-                find / -type d -name "browsertest-init"
+                mdfind kind:folder "browsertest-init"
+                sudo su
+                mdfind kind:folder "browsertest-init"
                 sfdx force:org:create -f ./browsertest-init/config/project-scratch-def.json -a test -d 1
                 authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
