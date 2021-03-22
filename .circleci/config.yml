@@ -148,7 +148,7 @@ workflows:
     nightly:
         triggers:
             - schedule:
-                cron: "20 * * * *"
+                cron: "0 0 31 12 *"
                 filters:
                     branches:
                         only:
@@ -158,7 +158,7 @@ workflows:
     hourly:
         triggers:
             - schedule:
-                cron: "0 * * * *"
+                cron: "0 0 31 12 *"
                 filters:
                     branches:
                         only:
