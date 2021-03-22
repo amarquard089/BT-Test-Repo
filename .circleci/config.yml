@@ -96,6 +96,7 @@ jobs:
                       sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
                       sudo pip install --upgrade pip 
                       sudo pip install cumulusci
+                      cci version
                       cci org import test test
             - run:
                   name: Run Test
@@ -140,6 +141,8 @@ workflows:
                 requires:
                       - install-and-check-dx-connection
             - RunBrowserTests:
+                context:
+                      - BT-Sample
                   requires:
                       - prepare-org
     nightly:
