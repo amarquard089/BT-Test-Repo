@@ -152,6 +152,31 @@ workflows:
                 filters:
                     branches:
                         only:
-                            - master
+                          - master
         jobs:
             - echoing
+    hourly:
+        triggers:
+            - schedule:
+                cron: "0 * * * *"
+                filters:
+                    branches:
+                        only:
+                          - master
+        jobs:
+            - dx-download
+            - install-and-check-dx-connection:
+                context: 
+                    - BT-Sample
+                requires:
+                    - dx-download
+            - prepare-org:
+                requires:
+                    - install-and-check-dx-connection
+            - RunBrowserTests:
+                context:
+                    - BT-Sample
+                requires:
+                    - prepare-org
+
+    
