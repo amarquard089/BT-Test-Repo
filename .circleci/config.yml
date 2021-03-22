@@ -129,6 +129,8 @@ workflows:
         jobs:
             - dx-download
             - install-and-check-dx-connection:
+                context: 
+                    - BT-Sample
                 requires:
                       - dx-download
             - prepare-org:
