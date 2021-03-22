@@ -119,6 +119,17 @@ jobs:
             - store_artifacts:
                   path: ~/.sfdx/sfdx.log
                   destination: sfdx-logs
+    
+    echoing:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                  name: echo
+                  command: echo "Hello"
 
 workflows:
     version: 2.1
@@ -136,3 +147,13 @@ workflows:
             - RunBrowserTests:
                   requires:
                       - prepare-org
+    nightly:
+        triggers:
+            - schedule:
+                cron: "16 0 * * *"
+                filters:
+                    branches:
+                        only:
+                            - master
+        jobs:
+            - echoing
