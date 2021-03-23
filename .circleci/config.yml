@@ -83,6 +83,7 @@ jobs:
     RunBrowserTests:
         docker:
             - image: circleci/python:3.7.4-browsers
+        parallelism: 2
         steps:
             - checkout
             - attach_workspace:
@@ -101,7 +102,9 @@ jobs:
             - run:
                   name: Run Test
                   command: |
-                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/ --org test -o vars BROWSER:headlessfirefox
+                      test_files=$(circleci tests split ~/project/testfiles.txt)
+                      echo $test_files
+                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/$test_files --org test -o vars BROWSER:headlessfirefox
             - run:
                   name: Delete Scratch Org
                   command: |
