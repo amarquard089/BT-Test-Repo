@@ -160,7 +160,7 @@ workflows:
                       - BT-Sample
                   requires:
                       - prepare-org
-            - Delete_Scratch_Org:
+            - Delete_Scratch_org:
                   requires:
                       - RunBrowserTests
     nightly:
