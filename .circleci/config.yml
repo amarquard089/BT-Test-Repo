@@ -109,6 +109,10 @@ jobs:
                       mv ./robot/BT-Test-Repo/tests/${testarray[0]} ./robot/BT-Test-Repo/tests_one/
                       mv ./robot/BT-Test-Repo/tests/${testarray[1]} ./robot/BT-Test-Repo/tests_one/
                       cci task run robot -o suites ./robot/BT-Test-Repo/tests_one/ --org test -o vars BROWSER:headlessfirefox
+            - persist_to_workspace:
+                root: ~/
+                paths:
+                    - tools/browserTestOrgs/*
             - store_test_results:
                   path: ./robot/BT-Test-Repo/results
             - store_artifacts:
@@ -125,6 +129,9 @@ jobs:
             - checkout
             - attach_workspace:
                   at: ~/
+            - run:
+                  name: DX Install
+                  command: ~/tools/sfdx/install
             - run:
                     name: Delete Scratch Org
                     command: |
