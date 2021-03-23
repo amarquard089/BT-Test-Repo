@@ -101,7 +101,7 @@ jobs:
             - persist_to_workspace:
                   root: ~/
                   paths:
-                      - /tools/browserTestOrgs/*
+                      - tools/browserTestOrgs/*
 
     RunBrowsertest_final:
         docker:
