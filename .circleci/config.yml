@@ -135,6 +135,7 @@ jobs:
             - run:
                     name: Delete Scratch Org
                     command: |
+                        sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
                         sfdx force:org:delete -u test --noprompt
                     when: always
 
