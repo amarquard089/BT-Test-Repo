@@ -109,11 +109,6 @@ jobs:
                       mv ./robot/BT-Test-Repo/tests/${testarray[0]} ./robot/BT-Test-Repo/tests_one/
                       mv ./robot/BT-Test-Repo/tests/${testarray[1]} ./robot/BT-Test-Repo/tests_one/
                       cci task run robot -o suites ./robot/BT-Test-Repo/tests_one/ --org test -o vars BROWSER:headlessfirefox
-            - run:
-                  name: Delete Scratch Org
-                  command: |
-                      sfdx force:org:delete -u test --noprompt
-                  when: always
             - store_test_results:
                   path: ./robot/BT-Test-Repo/results
             - store_artifacts:
@@ -123,6 +118,19 @@ jobs:
                   path: ~/.sfdx/sfdx.log
                   destination: sfdx-logs
     
+    Delete_Scratch_org:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                    name: Delete Scratch Org
+                    command: |
+                        sfdx force:org:delete -u test --noprompt
+                    when: always
+
     echoing:
         docker:
             - image: circleci/python:3.7.4-browsers
@@ -152,6 +160,9 @@ workflows:
                       - BT-Sample
                   requires:
                       - prepare-org
+            - Delete_Scratch_Org:
+                  requires:
+                      - RunBrowserTests
     nightly:
         triggers:
             - schedule:
