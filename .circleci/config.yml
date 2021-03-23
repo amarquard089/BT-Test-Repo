@@ -83,7 +83,6 @@ jobs:
     RunBrowserTests:
         docker:
             - image: circleci/python:3.7.4-browsers
-        parallelism: 2
         steps:
             - checkout
             - attach_workspace:
@@ -99,6 +98,19 @@ jobs:
                       sudo pip install cumulusci
                       cci version
                       cci org import test test
+            - persist_to_workspace:
+                  root: ~/
+                  paths:
+                      - /tools/browserTestOrgs/*
+
+    RunBrowsertest_final:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        parallelism: 2
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
             - run:
                   name: Run Test
                   command: |
@@ -122,6 +134,7 @@ jobs:
             - store_artifacts:
                   path: ~/.sfdx/sfdx.log
                   destination: sfdx-logs
+
     
     echoing:
         docker:
@@ -152,6 +165,9 @@ workflows:
                       - BT-Sample
                   requires:
                       - prepare-org
+            - RunBrowsertest_final:
+                  requires:
+                      - RunBrowserTests
     nightly:
         triggers:
             - schedule:
