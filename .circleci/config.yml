@@ -120,7 +120,7 @@ jobs:
                       mkdir ./robot/BT-Test-Repo/tests_one
                       mv ./robot/BT-Test-Repo/tests/${testarray[0]} ./robot/BT-Test-Repo/tests_one/
                       mv ./robot/BT-Test-Repo/tests/${testarray[1]} ./robot/BT-Test-Repo/tests_one/
-                      cci task run robot -o suites ./robot/BT-Test-Repo/test_one/ --org test -o vars BROWSER:headlessfirefox
+                      cci task run robot -o suites ./robot/BT-Test-Repo/tests_one/ --org test -o vars BROWSER:headlessfirefox
             - run:
                   name: Delete Scratch Org
                   command: |
