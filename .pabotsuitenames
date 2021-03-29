@@ -1,6 +1,12 @@
-datasources:613485fd73944b727f1b0fd41df3da659572a436
+datasources:37e039d6c2c049a47d2c58f04d2caf7d9a45c5ed
 commandlineoptions:1a1a3556285943559b79df133b23194631588f0c
 suitesfrom:no-suites-from-option
-file:86e16728631d20318f7c40dd1647f2657d26ab29
---suite Tests.Create Contact
---suite Tests.Create Contact Copy
+file:6fd1d481ce099a914b95a0f5f93ec4040553a1f6
+--suite Tests.Create Contact1
+--suite Tests.Create Contact2
+--suite Tests.Create Contact3
+--suite Tests.Create Contact4
+--suite Tests.Create Contact1 Copy
+--suite Tests.Create Contact2 Copy
+--suite Tests.Create Contact3 Copy
+--suite Tests.Create Contact4 Copy

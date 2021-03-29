@@ -84,6 +84,7 @@ jobs:
         docker:
             - image: circleci/python:3.7.4-browsers
         parallelism: 2
+        resource_class: large
         steps:
             - checkout
             - attach_workspace:
