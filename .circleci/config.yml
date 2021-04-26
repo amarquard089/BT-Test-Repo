@@ -75,7 +75,7 @@ jobs:
           - run:
               name: Get Submodule
               command: |
-                cd ~/project/BT-Test-Repo/
+                cd ~/project/
                 ls
                 pwd
                 echo "should clone in BT-Test-Repo"
