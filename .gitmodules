@@ -1,0 +1,3 @@
+[submodule "btest-submodule"]
+	path = btest-submodule
+	url = https://github.com/amarquard089/btest-submodule.git
