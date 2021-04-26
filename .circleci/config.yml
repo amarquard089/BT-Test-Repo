@@ -72,14 +72,6 @@ jobs:
                 authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test.auth
-          - run:
-              name: Get Submodule
-              command: |
-                cd ~/project/
-                ls
-                pwd
-                echo "should clone in BT-Test-Repo"
-                git submodule update --init
           - persist_to_workspace:
                 root: ~/
                 paths:
@@ -107,6 +99,10 @@ jobs:
                       sudo pip install cumulusci
                       cci version
                       cci org import test test
+            - run:
+                  name: Get Submodule
+                  command: |
+                      git submodule sync --recursive && git submodule update --recursive --init
             - run:
                   name: Run Test
                   command: |
