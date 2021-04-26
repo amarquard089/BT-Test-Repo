@@ -72,6 +72,10 @@ jobs:
                 authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test.auth
+          - run:
+              name: Get Submodule
+              command: |
+                git submodule update --init
           - persist_to_workspace:
                 root: ~/
                 paths:
