@@ -27,6 +27,7 @@ Via UI
     Go to page                  Home    Contact
     Click Object Button         New
     Wait for modal              New     Contact
+    Sleep                       1 seconds
     Populate Form
     ...                         First Name=${first_name}
     ...                         Last Name=${last_name}
