@@ -1,7 +1,7 @@
 *** Settings ***
 
 Resource        cumulusci/robotframework/Salesforce.robot
-Resource        ../../../btest-submodule/btest_resources/lightning.resource
+Resource        ~/btest-submodule/btest_resources/lightning.resource
 Library         cumulusci.robotframework.PageObjects
 
 Suite Setup     Open Test Browser

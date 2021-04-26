@@ -10,6 +10,7 @@ __pycache__
 
 # Robot Framework results
 robot/BT-Test-Repo/results/
+.pabotsuitenames
 
 # Editors
 *.sublime-project
