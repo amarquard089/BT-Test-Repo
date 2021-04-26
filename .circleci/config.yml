@@ -75,6 +75,10 @@ jobs:
           - run:
               name: Get Submodule
               command: |
+                cd ~/BT-Test-Repo/
+                ls
+                pwd
+                echo "should clone in BT-Test-Repo"
                 git submodule update --init
           - persist_to_workspace:
                 root: ~/
