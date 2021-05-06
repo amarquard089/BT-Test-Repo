@@ -290,8 +290,8 @@ jobs:
             - run:
                     name: Delete Scratch Org
                     command: |
-                        sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
-                        sfdx force:org:delete -u test --noprompt
+                        sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test2
+                        sfdx force:org:delete -u test2 --noprompt
                     when: always
 
     echoing:
@@ -339,7 +339,7 @@ workflows:
             - RunBrowserTests2:
                   context:
                       - BT-Sample
-                  requires_
+                  requires:
                       - prepare-org2
             - Delete_Scratch_org:
                   requires:
