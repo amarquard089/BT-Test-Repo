@@ -330,7 +330,7 @@ workflows:
                   context:
                       - BT-Sample
                   requires:
-                      - prepare-org
+                      - prepare-org2
             - RunBrowserTests:
                   context:
                       - BT-Sample
@@ -340,7 +340,7 @@ workflows:
                   context:
                       - BT-Sample
                   requires_
-                      - prepare-org
+                      - prepare-org2
             - Delete_Scratch_org:
                   requires:
                       - RunApexTest
