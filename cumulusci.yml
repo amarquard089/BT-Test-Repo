@@ -12,7 +12,7 @@ tasks:
     robot:
         options:
             xunit: test-result-junit.xml
-            processes: 2
+            #processes: 2
             options:
                 outputdir: robot/BT-Test-Repo/results
 

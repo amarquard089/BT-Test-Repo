@@ -72,6 +72,11 @@ jobs:
                 authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test.auth
+          - run:
+               name: Push Source to Org
+               command: |
+                cd ./browsertest-init/
+                sfdx force:source:push -f -u test
           - persist_to_workspace:
                 root: ~/
                 paths:
@@ -80,10 +85,105 @@ jobs:
                 path: ~/.sfdx/sfdx.log
                 destination: sfdx-logs
 
+    prepare-org2:
+      machine: true
+      steps: 
+          - checkout
+          - attach_workspace:
+                at: ~/
+          - run:
+              name: Install SFDX
+              command: ~/tools/sfdx/install
+          - run:
+                name: update dx
+                command: |
+                    sfdx update
+          - run:
+               name: Create Scratch Org
+               command: |
+                sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
+                cd ~/project
+                sfdx force:org:create -f ./browsertest-init/config/project-scratch-def.json -a test2 -d 1
+                authInfo=$(sfdx force:org:display -u test2 --verbose --json | jq -j .result.sfdxAuthUrl)
+                mkdir -p ~/tools/browserTestOrgs2
+                echo $authInfo > ~/tools/browserTestOrgs2/test2.auth
+          - run:
+               name: Push Source to Org
+               command: |
+                cd ./browsertest-init/
+                sfdx force:source:push -f -u test2
+          - persist_to_workspace:
+                root: ~/
+                paths:
+                    - tools/browserTestOrgs2/*
+          - store_artifacts:
+                path: ~/.sfdx/sfdx.log
+                destination: sfdx-logs
+    
+    RunApexTest:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                  name: DX Install
+                  command: ~/tools/sfdx/install
+            - run:
+                  name: Run Apex Tests
+                  command: |
+                      sfdx force:data:soql:query -q "Select Name from apexclass where name like '%Test'" -u test --json > ~/tools/test.json
+                      tests=$(cat ~/tools/test.json | jq -r '.result.records |.[] .Name')
+                      sfdx force:apex:test:run -u test -w 30 -r human -d ~/test-results --verbose -n $tests
+                  no_output_timeout: 60m
+            - store_test_results:
+                  path: ~/test-results
+            - store_artifacts:
+                  path: ~/test-results
+                  destination: test-results
+            - store_artifacts:
+                  path: ~/.sfdx/sfdx.log
+                  destination: sfdx-logs
+            - persist_to_workspace:
+                  root: ~/
+                  paths:
+                      - tools/browserTestOrgs/*
+
+    RunApexTest2:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                  name: DX Install
+                  command: ~/tools/sfdx/install
+            - run:
+                  name: Run Apex Tests
+                  command: |
+                      sfdx force:data:soql:query -q "Select Name from apexclass where name like '%Test'" -u test2 --json > ~/tools/test2.json
+                      tests=$(cat ~/tools/test2.json | jq -r '.result.records |.[] .Name')
+                      sfdx force:apex:test:run -u test2 -w 30 -r human -d ~/test-results --verbose -n $tests
+                  no_output_timeout: 60m
+            - store_test_results:
+                  path: ~/test-results
+            - store_artifacts:
+                  path: ~/test-results
+                  destination: test-results
+            - store_artifacts:
+                  path: ~/.sfdx/sfdx.log
+                  destination: sfdx-logs
+            - persist_to_workspace:
+                  root: ~/
+                  paths:
+                      - tools/browserTestOrgs2/*
+
     RunBrowserTests:
         docker:
             - image: circleci/python:3.7.4-browsers
-        parallelism: 2
+        #parallelism: 2
         steps:
             - checkout
             - attach_workspace:
@@ -106,13 +206,47 @@ jobs:
             - run:
                   name: Run Test
                   command: |
-                      test_files=$(circleci tests split ~/project/testfiles.txt)
-                      testarray=($test_files)
-                      echo ${testarray[0]}
-                      mkdir ./robot/BT-Test-Repo/tests_one
-                      mv ./robot/BT-Test-Repo/tests/${testarray[0]} ./robot/BT-Test-Repo/tests_one/
-                      mv ./robot/BT-Test-Repo/tests/${testarray[1]} ./robot/BT-Test-Repo/tests_one/
-                      cci task run robot -o suites ./robot/BT-Test-Repo/tests_one/ --org test -o vars BROWSER:headlessfirefox
+                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/create_contact1 --org test -o vars BROWSER:headlessfirefox
+            - persist_to_workspace:
+                root: ~/
+                paths:
+                    - tools/browserTestOrgs/*
+            - store_test_results:
+                  path: ./robot/BT-Test-Repo/results
+            - store_artifacts:
+                  path: ./robot/BT-Test-Repo/results
+                  destination: browsertest-results
+            - store_artifacts:
+                  path: ~/.sfdx/sfdx.log
+                  destination: sfdx-logs
+    
+    RunBrowserTests2:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        #parallelism: 2
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                  name: DX Install
+                  command: ~/tools/sfdx/install
+            - run:
+                  name: Install cci
+                  command: |
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test2.auth --setalias test2
+                      sudo pip install --upgrade pip 
+                      sudo pip install cumulusci
+                      cci version
+                      cci org import test2 test2
+            - run:
+                  name: Get Submodule
+                  command: |
+                      git submodule sync --recursive && git submodule update --recursive --init
+            - run:
+                  name: Run Test
+                  command: |
+                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/create_contact2 --org test2 -o vars BROWSER:headlessfirefox
             - persist_to_workspace:
                 root: ~/
                 paths:
@@ -127,6 +261,23 @@ jobs:
                   destination: sfdx-logs
     
     Delete_Scratch_org:
+        docker:
+            - image: circleci/python:3.7.4-browsers
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: ~/
+            - run:
+                  name: DX Install
+                  command: ~/tools/sfdx/install
+            - run:
+                    name: Delete Scratch Org
+                    command: |
+                        sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
+                        sfdx force:org:delete -u test --noprompt
+                    when: always
+    
+    Delete_Scratch_org2:
         docker:
             - image: circleci/python:3.7.4-browsers
         steps:
@@ -167,14 +318,38 @@ workflows:
             - prepare-org:
                 requires:
                       - install-and-check-dx-connection
+            - prepare-org2:
+                requires:
+                      - install-and-check-dx-connection
+            - RunApexTest:
+                  context:
+                      - BT-Sample
+                  requires:
+                      - prepare-org
+            - RunApexTest2:
+                  context:
+                      - BT-Sample
+                  requires:
+                      - prepare-org
             - RunBrowserTests:
                   context:
                       - BT-Sample
                   requires:
                       - prepare-org
+            - RunBrowserTests2:
+                  context:
+                      - BT-Sample
+                  requires_
+                      - prepare-org
             - Delete_Scratch_org:
                   requires:
+                      - RunApexTest
                       - RunBrowserTests
+            - Delete_Scratch_org2:
+                  requires:
+                      - RunApexTest2
+                      - RunBrowserTests2
+                      
     nightly:
         triggers:
             - schedule:
@@ -209,4 +384,12 @@ workflows:
                 requires:
                     - prepare-org
 
+
+## Use this for parallel runs
+#test_files=$(circleci tests split ~/project/testfiles.txt)
+#testarray=($test_files)
+#echo ${testarray[0]}
+#mkdir ./robot/BT-Test-Repo/tests_one
+#mv ./robot/BT-Test-Repo/tests/${testarray[0]} ./robot/BT-Test-Repo/tests_one/
+#mv ./robot/BT-Test-Repo/tests/${testarray[1]} ./robot/BT-Test-Repo/tests_one/
     
