@@ -133,6 +133,7 @@ jobs:
             - run:
                   name: Run Apex Tests
                   command: |
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
                       sfdx force:data:soql:query -q "Select Name from apexclass where name like '%Test'" -u test --json > ~/tools/test.json
                       tests=$(cat ~/tools/test.json | jq -r '.result.records |.[] .Name')
                       sfdx force:apex:test:run -u test -w 30 -r human -d ~/test-results --verbose -n $tests
@@ -163,6 +164,7 @@ jobs:
             - run:
                   name: Run Apex Tests
                   command: |
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs2/test.auth --setalias test2
                       sfdx force:data:soql:query -q "Select Name from apexclass where name like '%Test'" -u test2 --json > ~/tools/test2.json
                       tests=$(cat ~/tools/test2.json | jq -r '.result.records |.[] .Name')
                       sfdx force:apex:test:run -u test2 -w 30 -r human -d ~/test-results --verbose -n $tests
@@ -234,7 +236,7 @@ jobs:
             - run:
                   name: Install cci
                   command: |
-                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test2.auth --setalias test2
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs2/test2.auth --setalias test2
                       sudo pip install --upgrade pip 
                       sudo pip install cumulusci
                       cci version
@@ -250,7 +252,7 @@ jobs:
             - persist_to_workspace:
                 root: ~/
                 paths:
-                    - tools/browserTestOrgs/*
+                    - tools/browserTestOrgs2/*
             - store_test_results:
                   path: ./robot/BT-Test-Repo/results
             - store_artifacts:
