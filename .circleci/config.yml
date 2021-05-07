@@ -1,6 +1,36 @@
 version: 2.1
 orbs:
   sfdx: circleci/salesforce-sfdx@2.1.1
+
+workflows:
+  deploy-and-test:
+    jobs:
+      - install-and-check-dx-connection:
+          context:
+            - BT-Sample
+      - prepare-org:
+          requires:
+            - install-and-check-dx-connection
+      - prepare-org2:
+          requires:
+            - install-and-check-dx-connection
+      - RunApexTest:
+          context:
+            - BT-Sample
+          requires:
+            - prepare-org
+      - RunApexTest2:
+          context:
+            - BT-Sample
+          requires:
+            - prepare-org2
+      - RunBrowserTests:
+          context:
+            - BT-Sample
+          requires:
+            - prepare-org
+
+
 jobs:
   install-and-check-dx-connection:
     executor: sfdx/default
@@ -27,6 +57,8 @@ jobs:
       - store_artifacts:
           path: ~/.sfdx/sfdx.log
           destination: sfdx-logs
+
+
   prepare-org:
     executor: sfdx/default
     steps:
@@ -62,6 +94,8 @@ jobs:
       - store_artifacts:
           path: ~/.sfdx/sfdx.log
           destination: sfdx-logs
+
+
   prepare-org2:
     executor: sfdx/default
     steps:
@@ -97,6 +131,8 @@ jobs:
       - store_artifacts:
           path: ~/.sfdx/sfdx.log
           destination: sfdx-logs
+
+
   RunApexTest:
     executor: sfdx/default
     steps:
@@ -130,6 +166,8 @@ jobs:
           root: ~/
           paths:
             - tools/browserTestOrgs/*
+
+
   RunApexTest2:
     executor: sfdx/default
     steps:
@@ -163,6 +201,8 @@ jobs:
           root: ~/
           paths:
             - tools/browserTestOrgs/*
+
+
   RunBrowserTests:
     executor: sfdx/default
     docker:
@@ -208,16 +248,17 @@ jobs:
       - store_artifacts:
           path: ~/.sfdx/sfdx.log
           destination: sfdx-logs
+
+
   RunBrowserTests2:
+    executor: sfdx/default
     docker:
       - image: 'circleci/python:3.7.4-browsers'
     steps:
+      - sfdx/install
       - checkout
       - attach_workspace:
           at: ~/
-      - run:
-          name: DX Install
-          command: ~/tools/sfdx/install
       - run:
           name: Install cci
           command: >
@@ -254,10 +295,14 @@ jobs:
       - store_artifacts:
           path: ~/.sfdx/sfdx.log
           destination: sfdx-logs
+
+
   Delete_Scratch_org:
+    executor: sfdx/default
     docker:
       - image: 'circleci/python:3.7.4-browsers'
     steps:
+      - sfdx/install
       - checkout
       - attach_workspace:
           at: ~/
@@ -272,16 +317,15 @@ jobs:
 
             sfdx force:org:delete -u test --noprompt
           when: always
+
+          
   Delete_Scratch_org2:
-    docker:
-      - image: 'circleci/python:3.7.4-browsers'
+    executor: sfdx/default
     steps:
+      - sfdx/install
       - checkout
       - attach_workspace:
           at: ~/
-      - run:
-          name: DX Install
-          command: ~/tools/sfdx/install
       - run:
           name: Delete Scratch Org
           command: >
@@ -290,41 +334,3 @@ jobs:
 
             sfdx force:org:delete -u test2 --noprompt
           when: always
-  echoing:
-    docker:
-      - image: 'circleci/python:3.7.4-browsers'
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: echo
-          command: echo "Hello"
-workflows:
-  version: 2.1
-  deploy-and-test:
-    jobs:
-      - install-and-check-dx-connection:
-          context:
-            - BT-Sample
-      - prepare-org:
-          requires:
-            - install-and-check-dx-connection
-      - prepare-org2:
-          requires:
-            - install-and-check-dx-connection
-      - RunApexTest:
-          context:
-            - BT-Sample
-          requires:
-            - prepare-org
-      - RunApexTest2:
-          context:
-            - BT-Sample
-          requires:
-            - prepare-org2
-      - RunBrowserTests:
-          context:
-            - BT-Sample
-          requires:
-            - prepare-org
