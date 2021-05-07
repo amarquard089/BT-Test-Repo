@@ -1,13 +1,12 @@
 version: 2.1
+orbs:
+  # https://circleci.com/orbs/registry/orb/circleci/salesforce-sfdx
+  sfdx: circleci/salesforce-sfdx@2.1.1
 jobs:
     install-and-check-dx-connection:
-        docker:
-            - image: circleci/node:latest
+        executor: sfdx/default
         steps:
-            - run: 
-                name: install dx
-                command: |
-                    npm install sfdx-cli
+            - sfdx/install
             - run:
                 name: create and store dx key
                 command: |
@@ -36,28 +35,24 @@ jobs:
                     destination: sfdx-logs
 
     prepare-org:
-      docker:
-          - image: circleci/node:latest
-      steps: 
+       executor: sfdx/default
+       steps: 
           - checkout
-          - restore_cache:
-                keys: 
-                    - sfdx-cli-752021-{{ .Branch }}
           - attach_workspace:
                 at: ~/
           - run:
                name: Create Scratch Org
                command: |
-                npx sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
+                sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
                 cd ~/project
-                npx sfdx force:org:create -f ./config/project-scratch-def.json -a test -d 1
+                sfdx force:org:create -f ./config/project-scratch-def.json -a test -d 1
                 authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test.auth
           - run:
                name: Push Source to Org
                command: |
-                npx sfdx force:source:push -f -u test
+                sfdx force:source:push -f -u test
           - persist_to_workspace:
                 root: ~/
                 paths:
