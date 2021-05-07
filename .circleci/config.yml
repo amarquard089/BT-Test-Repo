@@ -1,33 +1,14 @@
 version: 2.1
+orbs:
+  node: circleci/node@4.3.0
 jobs:
-    dx-download:
-      machine: true
-      steps:
-        - checkout
-        - run:
-            name: Download DX and install
-            command: |
-                mkdir ~/tools
-                wget -qO- https://developer.salesforce.com/media/salesforce-cli/manifest.json > ~/tools/manifest.json
-                DXURL=$(cat ~/tools/manifest.json | jq -r '.downloads."linux-x64".url')
-                DXFOLDER=$(cat ~/tools/manifest.json | jq -r '.installers."linux-x64".url | match ("[^/]+$"; "g") .string | match (".+[^\\.tar.\\.xz]") .string')
-                DXFOLDEROVERRIDE='sfdx-cli-v7.82.0-3d0c527ac6-linux-x64'
-                wget -qO- $DXURL | tar xJf - --directory ~/tools/
-                sudo mv ~/tools/$DXFOLDEROVERRIDE ~/tools/sfdx
-                ~/tools/sfdx/install
-        - persist_to_workspace:
-            root: ~/
-            paths:
-              - tools/*
-
     install-and-check-dx-connection:
-        machine: true
+        executor: node/default
         steps:
-            - attach_workspace:
-                    at: ~/
-            - run:
-                name: Install SFDX
-                command: ~/tools/sfdx/install
+            - checkout
+            - node/install-packages:
+                cache-path: ~/project/node_modules
+            - run: sfdx -v
             - run:
                 name: create and store dx key
                 command: |
@@ -57,25 +38,17 @@ jobs:
           - attach_workspace:
                 at: ~/
           - run:
-              name: Install SFDX
-              command: ~/tools/sfdx/install
-          - run:
-                name: update dx
-                command: |
-                    sfdx update
-          - run:
                name: Create Scratch Org
                command: |
                 sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
                 cd ~/project
-                sfdx force:org:create -f ./browsertest-init/config/project-scratch-def.json -a test -d 1
+                sfdx force:org:create -f ./config/project-scratch-def.json -a test -d 1
                 authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test.auth
           - run:
                name: Push Source to Org
                command: |
-                cd ./browsertest-init/
                 sfdx force:source:push -f -u test
           - persist_to_workspace:
                 root: ~/
@@ -103,14 +76,13 @@ jobs:
                command: |
                 sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
                 cd ~/project
-                sfdx force:org:create -f ./browsertest-init/config/project-scratch-def.json -a test2 -d 1
+                sfdx force:org:create -f ./config/project-scratch-def.json -a test2 -d 1
                 authInfo=$(sfdx force:org:display -u test2 --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test2.auth
           - run:
                name: Push Source to Org
                command: |
-                cd ./browsertest-init/
                 sfdx force:source:push -f -u test2
           - persist_to_workspace:
                 root: ~/
@@ -313,46 +285,43 @@ workflows:
     version: 2.1
     deploy-and-test:
         jobs:
-            - dx-download
             - install-and-check-dx-connection:
                 context: 
                       - BT-Sample
-                requires:
-                      - dx-download
             - prepare-org:
                 requires:
                       - install-and-check-dx-connection
-            - prepare-org2:
-                requires:
-                      - install-and-check-dx-connection
-            - RunApexTest:
-                  context:
-                      - BT-Sample
-                  requires:
-                      - prepare-org
-            - RunApexTest2:
-                  context:
-                      - BT-Sample
-                  requires:
-                      - prepare-org2
-            - RunBrowserTests:
-                  context:
-                      - BT-Sample
-                  requires:
-                      - prepare-org
-            - RunBrowserTests2:
-                  context:
-                      - BT-Sample
-                  requires:
-                      - prepare-org2
-            - Delete_Scratch_org:
-                  requires:
-                      - RunApexTest
-                      - RunBrowserTests
-            - Delete_Scratch_org2:
-                  requires:
-                      - RunApexTest2
-                      - RunBrowserTests2
+            # - prepare-org2:
+            #     requires:
+            #           - install-and-check-dx-connection
+            # - RunApexTest:
+            #       context:
+            #           - BT-Sample
+            #       requires:
+            #           - prepare-org
+            # - RunApexTest2:
+            #       context:
+            #           - BT-Sample
+            #       requires:
+            #           - prepare-org2
+            # - RunBrowserTests:
+            #       context:
+            #           - BT-Sample
+            #       requires:
+            #           - prepare-org
+            # - RunBrowserTests2:
+            #       context:
+            #           - BT-Sample
+            #       requires:
+            #           - prepare-org2
+            # - Delete_Scratch_org:
+            #       requires:
+            #           - RunApexTest
+            #           - RunBrowserTests
+            # - Delete_Scratch_org2:
+            #       requires:
+            #           - RunApexTest2
+            #           - RunBrowserTests2
                       
     nightly:
         triggers:
@@ -396,4 +365,3 @@ workflows:
 #mkdir ./robot/BT-Test-Repo/tests_one
 #mv ./robot/BT-Test-Repo/tests/${testarray[0]} ./robot/BT-Test-Repo/tests_one/
 #mv ./robot/BT-Test-Repo/tests/${testarray[1]} ./robot/BT-Test-Repo/tests_one/
-    
