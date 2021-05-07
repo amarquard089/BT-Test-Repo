@@ -7,7 +7,7 @@ jobs:
             - run: 
                 name: install dx
                 command: |
-                    npm install sfdx-cli --global
+                    sudo npm install sfdx-cli --global
             - run:
                 name: create and store dx key
                 command: |
