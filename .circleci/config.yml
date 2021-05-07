@@ -17,13 +17,13 @@ jobs:
                     echo $SFDX_AUTH_DEVHUB
 
             - run:
-                    name: authenticate dx against devhub
-                    command: |
-                        npx sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
-                                                    --setalias devHub \
-                                                    --setdefaultdevhubusername
+                name: authenticate dx against devhub
+                command: |
+                    npx sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
+                                                --setalias devHub \
+                                                --setdefaultdevhubusername
             - save_cache: 
-                key: sfdx-cli-{{ checksum "package-lock.json" }}
+                key: sfdx-cli-752021-{{ .Branch }}
                 paths:
                     - ~/node-modules
             - persist_to_workspace:
@@ -42,7 +42,7 @@ jobs:
           - checkout
           - restore_cache:
                 keys: 
-                    - sfdx-cli-{{ checksum "package-lock.json" }}
+                    - sfdx-cli-752021-{{ .Branch }}
           - attach_workspace:
                 at: ~/
           - run:
