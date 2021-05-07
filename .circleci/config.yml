@@ -70,9 +70,6 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Install SFDX
-          command: ~/tools/sfdx/install
-      - run:
           name: Create Scratch Org
           command: >
             sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias
@@ -108,9 +105,6 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: DX Install
-          command: ~/tools/sfdx/install
-      - run:
           name: Run Apex Tests
           command: >
             sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth
@@ -143,9 +137,6 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/
-      - run:
-          name: DX Install
-          command: ~/tools/sfdx/install
       - run:
           name: Run Apex Tests
           command: >
