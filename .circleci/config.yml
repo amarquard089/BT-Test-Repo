@@ -69,10 +69,6 @@ jobs:
               name: Install SFDX
               command: ~/tools/sfdx/install
           - run:
-                name: update dx
-                command: |
-                    sfdx update
-          - run:
                name: Create Scratch Org
                command: |
                 sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
@@ -94,11 +90,10 @@ jobs:
                 destination: sfdx-logs
     
     RunApexTest:
-        machine: true
-        #docker:
-        #    - image: circleci/python:3.7.4-browsers
-        steps:
-            - checkout
+       executor: sfdx/default
+       steps: 
+          - sfdx/install
+          - checkout
             - attach_workspace:
                   at: ~/
             - run:
@@ -126,11 +121,10 @@ jobs:
                       - tools/browserTestOrgs/*
 
     RunApexTest2:
-        machine: true
-        #docker:
-        #    - image: circleci/python:3.7.4-browsers
-        steps:
-            - checkout
+       executor: sfdx/default
+       steps: 
+          - sfdx/install
+          - checkout
             - attach_workspace:
                   at: ~/
             - run:
@@ -158,6 +152,7 @@ jobs:
                       - tools/browserTestOrgs/*
 
     RunBrowserTests:
+        executor: sfdx/default
         docker:
             - image: circleci/python:3.7.4-browsers
         #parallelism: 2
@@ -165,9 +160,6 @@ jobs:
             - checkout
             - attach_workspace:
                   at: ~/
-            - run:
-                  name: DX Install
-                  command: ~/tools/sfdx/install
             - run:
                   name: Install cci
                   command: |
@@ -292,24 +284,24 @@ workflows:
             - prepare-org:
                 requires:
                       - install-and-check-dx-connection
-            # - prepare-org2:
-            #     requires:
-            #           - install-and-check-dx-connection
-            # - RunApexTest:
-            #       context:
-            #           - BT-Sample
-            #       requires:
-            #           - prepare-org
-            # - RunApexTest2:
-            #       context:
-            #           - BT-Sample
-            #       requires:
-            #           - prepare-org2
-            # - RunBrowserTests:
-            #       context:
-            #           - BT-Sample
-            #       requires:
-            #           - prepare-org
+            - prepare-org2:
+                requires:
+                      - install-and-check-dx-connection
+            - RunApexTest:
+                  context:
+                      - BT-Sample
+                  requires:
+                      - prepare-org
+            - RunApexTest2:
+                  context:
+                      - BT-Sample
+                  requires:
+                      - prepare-org2
+            - RunBrowserTests:
+                  context:
+                      - BT-Sample
+                  requires:
+                      - prepare-org
             # - RunBrowserTests2:
             #       context:
             #           - BT-Sample
