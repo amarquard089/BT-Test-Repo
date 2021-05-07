@@ -23,7 +23,7 @@ jobs:
                                                     --setalias devHub \
                                                     --setdefaultdevhubusername
             - save_cache: 
-                key: sfdx-cli-{{ .BuildNum }}
+                key: sfdx-cli-{{ .Branch }}
                 paths:
                     - /usr/local/lib/node_modules/sfdx-cli
             - persist_to_workspace:
@@ -42,7 +42,7 @@ jobs:
           - checkout
           - restore_cache:
                 keys: 
-                    - sfdx-cli-{{ .BuildNum }}
+                    - sfdx-cli-{{ .Branch }}
           - attach_workspace:
                 at: ~/
           - run:
