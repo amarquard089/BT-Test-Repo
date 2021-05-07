@@ -121,8 +121,9 @@ jobs:
                 destination: sfdx-logs
     
     RunApexTest:
-        docker:
-            - image: circleci/python:3.7.4-browsers
+        machine: true
+        #docker:
+        #    - image: circleci/python:3.7.4-browsers
         steps:
             - checkout
             - attach_workspace:
@@ -152,8 +153,9 @@ jobs:
                       - tools/browserTestOrgs/*
 
     RunApexTest2:
-        docker:
-            - image: circleci/python:3.7.4-browsers
+        machine: true
+        #docker:
+        #    - image: circleci/python:3.7.4-browsers
         steps:
             - checkout
             - attach_workspace:
