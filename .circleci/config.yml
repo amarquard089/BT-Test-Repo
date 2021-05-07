@@ -7,7 +7,8 @@ jobs:
             - run: 
                 name: install dx
                 command: |
-                    sudo npm install sfdx-cli --global
+                    npm install sfdx-cli
+                    ls
             - run:
                 name: create and store dx key
                 command: |
@@ -19,13 +20,13 @@ jobs:
             - run:
                     name: authenticate dx against devhub
                     command: |
-                        sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
+                        npx sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
                                                     --setalias devHub \
                                                     --setdefaultdevhubusername
             - save_cache: 
                 key: sfdx-cli-{{ .Branch }}
                 paths:
-                    - /usr/local/lib/node_modules/sfdx-cli
+                    - ~/node-modules
             - persist_to_workspace:
                     root: ~/
                     paths:
