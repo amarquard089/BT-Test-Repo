@@ -1,9 +1,9 @@
 version: 2.1
 jobs:
     install-and-check-dx-connection:
-        machine: true
+         docker:
+            - image: circleci/node:latest
         steps:
-            - checkout
             - run: 
                 name: install dx
                 command: |
