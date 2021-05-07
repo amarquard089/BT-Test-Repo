@@ -1,16 +1,12 @@
 version: 2.1
-orbs:
-  node: circleci/node@4.3.0
 jobs:
     install-and-check-dx-connection:
-        executor: node/default
+        machine: true
         steps:
-            - checkout
-            - node/install-packages:
-                cache-path: ~/project/node_modules
-                override-ci-command: npm install
-            - run: sfdx -v
-            - run: npx sfdx -v
+            - run: 
+                name: install dx
+                command: |
+                    npm install sfdx-cli --global
             - run:
                 name: create and store dx key
                 command: |
