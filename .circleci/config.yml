@@ -18,13 +18,9 @@ jobs:
             - run:
                 name: authenticate dx against devhub
                 command: |
-                    npx sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
+                    sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
                                                 --setalias devHub \
                                                 --setdefaultdevhubusername
-            - save_cache: 
-                key: sfdx-cli-752021-{{ .Branch }}
-                paths:
-                    - ~/node-modules
             - persist_to_workspace:
                     root: ~/
                     paths:
@@ -46,7 +42,7 @@ jobs:
                command: |
                 sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
                 cd ~/project
-                sfdx force:org:create -f ./config/project-scratch-def.json -a test -d 1
+                sfdx force:org:create -f ./config/project-scratch-def.json -a test -d 1 -w 10
                 authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test.auth
@@ -63,8 +59,9 @@ jobs:
                 destination: sfdx-logs
 
     prepare-org2:
-      machine: true
-      steps: 
+       executor: sfdx/default
+       steps: 
+          - sfdx/install
           - checkout
           - attach_workspace:
                 at: ~/
