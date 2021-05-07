@@ -11,6 +11,7 @@ jobs:
             - run:
                 name: create and store dx key
                 command: |
+                    mkdir ~/tools
                     mkdir ~/tools/devhub-org
                     echo $SFDX_AUTH_DEVHUB > ~/tools/devhub-org/devHub.auth
                     echo $SFDX_AUTH_DEVHUB
