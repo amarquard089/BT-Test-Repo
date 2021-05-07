@@ -29,6 +29,11 @@ workflows:
             - BT-Sample
           requires:
             - prepare-org
+      - RunBrowserTests2:
+          context:
+            - BT-Sample
+          requires:
+            - prepare-org2
 
 
 jobs:
@@ -318,7 +323,7 @@ jobs:
             sfdx force:org:delete -u test --noprompt
           when: always
 
-          
+
   Delete_Scratch_org2:
     executor: sfdx/default
     steps:
