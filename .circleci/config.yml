@@ -105,8 +105,8 @@ jobs:
                 cd ~/project
                 sfdx force:org:create -f ./browsertest-init/config/project-scratch-def.json -a test2 -d 1
                 authInfo=$(sfdx force:org:display -u test2 --verbose --json | jq -j .result.sfdxAuthUrl)
-                mkdir -p ~/tools/browserTestOrgs2
-                echo $authInfo > ~/tools/browserTestOrgs2/test2.auth
+                mkdir -p ~/tools/browserTestOrgs
+                echo $authInfo > ~/tools/browserTestOrgs/test2.auth
           - run:
                name: Push Source to Org
                command: |
@@ -115,14 +115,14 @@ jobs:
           - persist_to_workspace:
                 root: ~/
                 paths:
-                    - tools/browserTestOrgs2/*
+                    - tools/browserTestOrgs/*
           - store_artifacts:
                 path: ~/.sfdx/sfdx.log
                 destination: sfdx-logs
     
     RunApexTest:
-        docker:
-            - image: circleci/python:3.7.4-browsers
+        #docker:
+        #    - image: circleci/python:3.7.4-browsers
         steps:
             - checkout
             - attach_workspace:
@@ -152,8 +152,8 @@ jobs:
                       - tools/browserTestOrgs/*
 
     RunApexTest2:
-        docker:
-            - image: circleci/python:3.7.4-browsers
+        #docker:
+        #    - image: circleci/python:3.7.4-browsers
         steps:
             - checkout
             - attach_workspace:
@@ -164,7 +164,7 @@ jobs:
             - run:
                   name: Run Apex Tests
                   command: |
-                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs2/test.auth --setalias test2
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test2.auth --setalias test2
                       sfdx force:data:soql:query -q "Select Name from apexclass where name like '%Test'" -u test2 --json > ~/tools/test2.json
                       tests=$(cat ~/tools/test2.json | jq -r '.result.records |.[] .Name')
                       sfdx force:apex:test:run -u test2 -w 30 -r human -d ~/test-results --verbose -n $tests
@@ -180,7 +180,7 @@ jobs:
             - persist_to_workspace:
                   root: ~/
                   paths:
-                      - tools/browserTestOrgs2/*
+                      - tools/browserTestOrgs/*
 
     RunBrowserTests:
         docker:
@@ -208,7 +208,7 @@ jobs:
             - run:
                   name: Run Test
                   command: |
-                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/create_contact1 --org test -o vars BROWSER:headlessfirefox
+                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/create_contact1.robot --org test -o vars BROWSER:headlessfirefox
             - persist_to_workspace:
                 root: ~/
                 paths:
@@ -236,7 +236,7 @@ jobs:
             - run:
                   name: Install cci
                   command: |
-                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs2/test2.auth --setalias test2
+                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test2.auth --setalias test2
                       sudo pip install --upgrade pip 
                       sudo pip install cumulusci
                       cci version
@@ -248,11 +248,11 @@ jobs:
             - run:
                   name: Run Test
                   command: |
-                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/create_contact2 --org test2 -o vars BROWSER:headlessfirefox
+                      cci task run robot -o suites ./robot/BT-Test-Repo/tests/create_contact2.robot --org test2 -o vars BROWSER:headlessfirefox
             - persist_to_workspace:
                 root: ~/
                 paths:
-                    - tools/browserTestOrgs2/*
+                    - tools/browserTestOrgs/*
             - store_test_results:
                   path: ./robot/BT-Test-Repo/results
             - store_artifacts:
@@ -292,7 +292,7 @@ jobs:
             - run:
                     name: Delete Scratch Org
                     command: |
-                        sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test2
+                        sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test2.auth --setalias test2
                         sfdx force:org:delete -u test2 --noprompt
                     when: always
 
