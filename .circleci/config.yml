@@ -8,7 +8,9 @@ jobs:
             - checkout
             - node/install-packages:
                 cache-path: ~/project/node_modules
+                override-ci-command: npm install
             - run: sfdx -v
+            - run: npx sfdx -v
             - run:
                 name: create and store dx key
                 command: |
