@@ -37,6 +37,7 @@ jobs:
     prepare-org:
        executor: sfdx/default
        steps: 
+          - sfdx/install
           - checkout
           - attach_workspace:
                 at: ~/
