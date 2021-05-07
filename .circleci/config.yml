@@ -168,6 +168,7 @@ jobs:
     docker:
       - image: 'circleci/python:3.7.4-browsers'
     steps:
+      - sfdx/install
       - checkout
       - attach_workspace:
           at: ~/
