@@ -94,31 +94,31 @@ jobs:
        steps: 
           - sfdx/install
           - checkout
-            - attach_workspace:
-                  at: ~/
-            - run:
-                  name: DX Install
-                  command: ~/tools/sfdx/install
-            - run:
-                  name: Run Apex Tests
-                  command: |
-                      sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
-                      sfdx force:data:soql:query -q "Select Name from apexclass where name like '%Test'" -u test --json > ~/tools/test.json
-                      tests=$(cat ~/tools/test.json | jq -r '.result.records |.[] .Name')
-                      sfdx force:apex:test:run -u test -w 30 -r human -d ~/test-results --verbose -n $tests
-                  no_output_timeout: 60m
-            - store_test_results:
-                  path: ~/test-results
-            - store_artifacts:
-                  path: ~/test-results
-                  destination: test-results
-            - store_artifacts:
-                  path: ~/.sfdx/sfdx.log
-                  destination: sfdx-logs
-            - persist_to_workspace:
-                  root: ~/
-                  paths:
-                      - tools/browserTestOrgs/*
+          - attach_workspace:
+                at: ~/
+         - run:
+                name: DX Install
+                command: ~/tools/sfdx/install
+        - run:
+                name: Run Apex Tests
+                command: |
+                    sfdx auth:sfdxurl:store -f ~/tools/browserTestOrgs/test.auth --setalias test
+                    sfdx force:data:soql:query -q "Select Name from apexclass where name like '%Test'" -u test --json > ~/tools/test.json
+                    tests=$(cat ~/tools/test.json | jq -r '.result.records |.[] .Name')
+                    sfdx force:apex:test:run -u test -w 30 -r human -d ~/test-results --verbose -n $tests
+                no_output_timeout: 60m
+        - store_test_results:
+                path: ~/test-results
+        - store_artifacts:
+                path: ~/test-results
+                destination: test-results
+        - store_artifacts:
+                path: ~/.sfdx/sfdx.log
+                destination: sfdx-logs
+        - persist_to_workspace:
+                root: ~/
+                paths:
+                    - tools/browserTestOrgs/*
 
     RunApexTest2:
        executor: sfdx/default
