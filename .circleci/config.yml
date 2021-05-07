@@ -8,7 +8,6 @@ jobs:
                 name: install dx
                 command: |
                     npm install sfdx-cli
-                    ls
             - run:
                 name: create and store dx key
                 command: |
@@ -24,7 +23,7 @@ jobs:
                                                     --setalias devHub \
                                                     --setdefaultdevhubusername
             - save_cache: 
-                key: sfdx-cli-{{ .Branch }}
+                key: sfdx-cli-{{ checksum "package-lock.json" }}
                 paths:
                     - ~/node-modules
             - persist_to_workspace:
@@ -43,22 +42,22 @@ jobs:
           - checkout
           - restore_cache:
                 keys: 
-                    - sfdx-cli-{{ .Branch }}
+                    - sfdx-cli-{{ checksum "package-lock.json" }}
           - attach_workspace:
                 at: ~/
           - run:
                name: Create Scratch Org
                command: |
-                sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
+                npx sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth --setalias devHub --setdefaultdevhubusername
                 cd ~/project
-                sfdx force:org:create -f ./config/project-scratch-def.json -a test -d 1
+                npx sfdx force:org:create -f ./config/project-scratch-def.json -a test -d 1
                 authInfo=$(sfdx force:org:display -u test --verbose --json | jq -j .result.sfdxAuthUrl)
                 mkdir -p ~/tools/browserTestOrgs
                 echo $authInfo > ~/tools/browserTestOrgs/test.auth
           - run:
                name: Push Source to Org
                command: |
-                sfdx force:source:push -f -u test
+                npx sfdx force:source:push -f -u test
           - persist_to_workspace:
                 root: ~/
                 paths:
