@@ -22,6 +22,10 @@ jobs:
                         sfdx auth:sfdxurl:store -f ~/tools/devhub-org/devHub.auth \
                                                     --setalias devHub \
                                                     --setdefaultdevhubusername
+            - save_cache: 
+                key: sfdx-cli-{{ .BuildNum }}
+                paths:
+                    - /usr/local/lib/node_modules/sfdx-cli
             - persist_to_workspace:
                     root: ~/
                     paths:
@@ -32,9 +36,13 @@ jobs:
                     destination: sfdx-logs
 
     prepare-org:
-      machine: true
+      docker:
+          - image: circleci/node:latest
       steps: 
           - checkout
+          - restore_cache:
+                keys: 
+                    - sfdx-cli-{{ .BuildNum }}
           - attach_workspace:
                 at: ~/
           - run:
