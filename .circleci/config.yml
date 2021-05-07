@@ -3,6 +3,7 @@ jobs:
     install-and-check-dx-connection:
         machine: true
         steps:
+            - checkout
             - run: 
                 name: install dx
                 command: |
